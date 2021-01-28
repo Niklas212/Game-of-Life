@@ -1,0 +1,8 @@
+# Binaries for programs and plugins
+main
+game_of_life_gui
+*.exe
+*.exe~
+*.so
+*.dylib
+*.dll
