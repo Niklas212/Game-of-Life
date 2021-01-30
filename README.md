@@ -7,4 +7,4 @@ this should work on linux (tested), windows and macOS
 - update vlang ```v up```
 - install vlang/ui ```v install ui```
 - clone this repository
-- ```v run [path to the cloned folder] ```
+- ```v [path to the cloned folder] ```
