@@ -5,7 +5,6 @@ import gg
 import gx
 import time
 
-
 const (
 	col		=10
 	row		=20
@@ -85,6 +84,7 @@ fn main() {
 		]),
 	])
 	app.window = window
+	go app.run()
 	ui.run(window)
 }
 fn new_map (mut app &App, mut btn &ui.Button) {
@@ -113,14 +113,17 @@ fn start_stop(mut app App, mut btn &ui.Button) {
 		}
 }
 
+fn (mut app App) run() {
+	for {
+		if app.start {
+			app.map.simulate()
+		}
+		time.sleep_ms(1000/sps)
+	}
+}
 
 fn draw_c(gg &gg.Context, mut app &App) {
 	
-	//update map
-	if app.start && app.watch.elapsed() > 1_000_000_000/sps {
-			app.map.simulate()
-			app.watch.restart()
-	}
 	
 	// draw background color of grid
 	gg.draw_rect(0, margin_top_to_grid, (size+padding)*app.map.width-padding+2*grid_padding, (size+padding)*app.map.height-padding+2*grid_padding, bg_grid)
