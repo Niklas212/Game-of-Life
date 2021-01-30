@@ -26,7 +26,6 @@ struct App {
 mut:
 	window &ui.Window = 0
 	start	bool
-	watch	time.StopWatch
 	map	Map={
 		pattern:create_map(row, col, 0)
 		width:row
@@ -36,7 +35,6 @@ mut:
 
 fn main() {
 	mut app := &App{
-	watch:time.new_stopwatch({auto_start:false})
 	}
 	window := ui.window({
 		width: win_width
@@ -105,11 +103,9 @@ fn start_stop(mut app App, mut btn &ui.Button) {
 		if app.start {
 			app.start=false
 			btn.text="start"
-			app.watch.pause()
 		} else {
 			app.start=true
 			btn.text="stop"
-			app.watch.restart()
 		}
 }
 
