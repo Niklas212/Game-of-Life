@@ -20,10 +20,6 @@ const (
 	bg_grid		=gx.rgb(120, 120, 120)
 	win_width  = 700
 	win_height = 396
-	//btn_map_width = 80
-	//btn_start_width = 80
-	//btn_row_width = 110
-	//btn_col_width = 110
 )
 
 struct App {
@@ -44,19 +40,28 @@ mut:
 fn main() {
 	
 	mut app := &App{}
+	
+	scale:=if sapp.dpi_scale()==0.0 {1.0} else {sapp.dpi_scale()}
+	
+	
+	fn_mouse_down:= fn (e ui.MouseEvent, mut window &ui.Window) {
+	mouse_down(mut window.state, e)
+}
+	
 	window := ui.window({
 		width: win_width
 		height: win_height
 		bg_color:bg_win
 		title: 'GAME OF LIFE'
 		resizable: true
+		on_mouse_down: fn_mouse_down
 		state: app
 	}, [
 		ui.canvas({
-					width  	:400
-					height  :250
-					draw_fn:draw_c
-				}),
+				width  	:400
+				height  :250
+				draw_fn:draw_c
+			}),
 		ui.row({
 			stretch: true
 			margin: ui.MarginConfig{8, 8, 8, 8}
@@ -90,7 +95,7 @@ fn main() {
 	])
 	app.window = window
 	go app.run()
-	go app.handle_size(if sapp.dpi_scale()==0.0 {1.0} else {sapp.dpi_scale()})
+	go app.handle_size(scale)
 	ui.run(window)
 }
 fn new_map (mut app &App, mut btn &ui.Button) {
@@ -107,6 +112,21 @@ fn click_row (mut app &App, mut btn &ui.Button) {
 	btn.text="$app.map.width rows"
 }
 
+
+fn mouse_down (mut app &App, e ui.MouseEvent) {
+	
+	if !app.start {
+	//checks if click is in grid
+		if e.x > (app.margin_left + grid_padding) && e.y > app.margin_top + margin_top_to_grid && e.x < (sapp.width() - app.margin_left - grid_padding) && e.y < sapp.height() - app.margin_top - grid_padding{
+			x:= (e.x - grid_padding - app.margin_left) / (app.size + padding)
+			y:= (e.y - grid_padding - app.margin_top - margin_top_to_grid) / (app.size + padding)
+			//println("$x, $y")
+			app.map.pattern[x][y]=!app.map.pattern[x][y]
+
+		}
+	}
+}
+
 fn start_stop(mut app App, mut btn &ui.Button) {
 		if app.start {
 			app.start=false
@@ -119,13 +139,12 @@ fn start_stop(mut app App, mut btn &ui.Button) {
 
 fn (mut app App) handle_size(scale f32) {
 	mut w, mut h, mut uh, mut uw, mut hs, mut ws:=0, 0, 0, 0, 0, 0
-	//app.btn_padding_right=300
 	for {
 		w = int(sapp.width() / scale)
 		h = int(sapp.height() / scale)
 		
 		uh = (h - margin_top_to_grid - 2 * grid_padding - (app.map.height-1) * padding)
-		uw = (w - 2 * grid_padding - (app.map.width) * padding)
+		uw = (w - 2 * grid_padding - (app.map.width - 1) * padding)
 		
 		hs = uh / app.map.height
 		ws = uw / app.map.width
@@ -141,8 +160,10 @@ fn (mut app App) run() {
 	for {
 		if app.start {
 			app.map.simulate()
+			app.window.refresh()
+			time.sleep_ms(1000/sps)
 		}
-		time.sleep_ms(1000/sps)
+		
 	}
 }
 
