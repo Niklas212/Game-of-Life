@@ -20,6 +20,7 @@ fn create_map(w int, h int, border int) [][]bool {
 	return m
 }
 
+
 fn (mut map Map)simulate() {
 	mut nm:=map.pattern.clone()
 	m:=map.pattern

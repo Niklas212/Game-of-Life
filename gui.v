@@ -11,7 +11,8 @@ const (
 	row		=20
 	//simulations per second
 	sps		=4
-	margin_top_to_grid=36
+	margin_left	= 8
+	margin_top_to_grid=30
 	padding		=4
 	grid_padding	=12
 	dead		=gx.white
@@ -19,7 +20,7 @@ const (
 	bg_win		=gx.rgb(200, 200, 200)
 	bg_grid		=gx.rgb(120, 120, 120)
 	win_width  = 700
-	win_height = 396
+	win_height = 390
 )
 
 struct App {
@@ -29,6 +30,10 @@ mut:
 	size	int =30
 	margin_top int
 	margin_left int
+	btn_nm		&ui.Button = 0
+	btn_start	&ui.Button = 0
+	btn_row		&ui.Button = 0
+	btn_col		&ui.Button = 0
 	
 	map	Map={
 		pattern:create_map(row, col, 0)
@@ -43,10 +48,38 @@ fn main() {
 	
 	scale:=if sapp.dpi_scale()==0.0 {1.0} else {sapp.dpi_scale()}
 	
-	
 	fn_mouse_down:= fn (e ui.MouseEvent, mut window &ui.Window) {
 	mouse_down(mut window.state, e)
 }
+
+	app.btn_nm = ui.button({
+		width: 80
+		height: 30
+		text: "new map"
+		onclick:new_map
+	})
+	
+	app.btn_start = ui.button({
+		width: 80
+		height: 30
+		text: "start"
+		onclick:start_stop
+				})
+	
+	app.btn_col = ui.button({
+		width:100
+		height: 30
+		text: "$col columns"
+		onclick:click_column
+				})
+				
+	app.btn_row = ui.button({
+		width: 100
+		height: 30
+		text: "$row rows"
+		onclick:click_row
+				})
+				
 	
 	window := ui.window({
 		width: win_width
@@ -62,42 +95,22 @@ fn main() {
 				height  :250
 				draw_fn:draw_c
 			}),
-		ui.row({
+		/*ui.row({
 			stretch: true
 			margin: ui.MarginConfig{8, 8, 8, 8}
 			spacing: 0
-		}, [	ui.button({
-				width: 80
-				height: 30
-				text: "start"
-				onclick:start_stop
-				}),
-			ui.button({
-				width:110
-				height: 30
-				text: "$col columns"
-				onclick:click_column
-				}),
-			ui.button({
-				width: 110
-				height: 30
-				text: "$row rows"
-				onclick:click_row
-				}),
-			ui.button({
-				width: 80
-				height: 30
-				text: "new map"
-				onclick:new_map
-				}),
-				
-		]),
+		}, [*/	app.btn_start,
+			app.btn_col,
+			app.btn_row,
+			app.btn_nm	
+		//]),
 	])
 	app.window = window
 	go app.run()
 	go app.handle_size(scale)
 	ui.run(window)
 }
+
 fn new_map (mut app &App, mut btn &ui.Button) {
 	app.map.pattern=create_map(app.map.width, app.map.height, 0)
 }
@@ -139,6 +152,11 @@ fn start_stop(mut app App, mut btn &ui.Button) {
 
 fn (mut app App) handle_size(scale f32) {
 	mut w, mut h, mut uh, mut uw, mut hs, mut ws:=0, 0, 0, 0, 0, 0
+	app.btn_col.y = 4
+	app.btn_row.y = 4
+	app.btn_start.y = 4
+	app.btn_start.x = margin_left
+	app.btn_nm.y = 4
 	for {
 		w = int(sapp.width() / scale)
 		h = int(sapp.height() / scale)
@@ -153,6 +171,11 @@ fn (mut app App) handle_size(scale f32) {
 		
 		app.margin_left = (uw - app.size * app.map.width) / 2
 		app.margin_top = (uh - app.size * app.map.height) / 2
+		
+		app.btn_nm.x = w - margin_left - app.btn_nm.width
+
+		app.btn_col.x = w / 2 - app.btn_col.width
+		app.btn_row.x = app.btn_col.x + app.btn_col.width
 	}
 }
 
@@ -179,3 +202,4 @@ fn draw_c(gg &gg.Context, mut app &App) {
 		}
 	}
 }
+
