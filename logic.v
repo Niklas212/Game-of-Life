@@ -9,17 +9,21 @@ struct Map {
 	height int
 }
 
-fn create_map(w int, h int, border int) [][]bool {
-	mut m:=[][]bool{len:w+border*2, init: []bool{len:h+border*2}}
+fn create_map(w int, h int) [][]bool {
+	mut m:=[][]bool{len:w, init: []bool{len:h}}
 	
-	for i in border..w+border{
-		for ii in border..h+border{
+	for i in 0..w{
+		for ii in 0..h{
 				m[i][ii]= if rand.intn(2)==1 {true} else {false}
 				}
 	}
 	return m
 }
-
+/*
+fn (mut map Map) simulate () {
+	mut score:=[][]int{len:}
+}
+*/
 
 fn (mut map Map)simulate() {
 	mut nm:=map.pattern.clone()

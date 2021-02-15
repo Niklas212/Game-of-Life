@@ -36,7 +36,7 @@ mut:
 	btn_col		&ui.Button = 0
 	
 	map	Map={
-		pattern:create_map(row, col, 0)
+		pattern:create_map(row, col)
 		width:row
 		height:col
 	}
@@ -112,7 +112,7 @@ fn main() {
 }
 
 fn new_map (mut app &App, mut btn &ui.Button) {
-	app.map.pattern=create_map(app.map.width, app.map.height, 0)
+	app.map.pattern=create_map(app.map.width, app.map.height)
 }
 
 fn click_column (mut app &App, mut btn &ui.Button) {
