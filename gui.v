@@ -12,7 +12,7 @@ const (
 	//simulations per second
 	sps		=4
 	margin_left	= 8
-	margin_top_to_grid=30
+	margin_top_to_grid=40
 	padding		=4
 	grid_padding	=12
 	dead		=gx.white
@@ -20,7 +20,7 @@ const (
 	bg_win		=gx.rgb(200, 200, 200)
 	bg_grid		=gx.rgb(120, 120, 120)
 	win_width  = 700
-	win_height = 390
+	win_height = 400
 )
 
 struct App {
@@ -219,7 +219,7 @@ fn (mut app App) run() {
 	}
 }
 
-fn draw_c(gg &gg.Context, mut app &App) {
+fn draw_c(gg &gg.Context, mut app &App, can &ui.Canvas) {
 	
 	// draw background color of grid
 	gg.draw_rect(app.margin_left, margin_top_to_grid+app.margin_top, (app.size+padding)*app.map.width-padding+2*grid_padding, (app.size+padding)*app.map.height-padding+2*grid_padding, bg_grid)
