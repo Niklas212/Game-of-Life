@@ -30,6 +30,9 @@ mut:
 	size	int =30
 	margin_top int
 	margin_left int
+	mouse_drag	bool
+	mouse_down	bool
+	drag_state	bool
 	btn_nm		&ui.Button = 0
 	btn_start	&ui.Button = 0
 	btn_row		&ui.Button = 0
@@ -45,13 +48,18 @@ mut:
 fn main() {
 	
 	mut app := &App{}
-	
-	//scale:=if sapp.dpi_scale()==0.0 {1.0} else {sapp.dpi_scale()}
-	//scale:=1
-	
+
 	fn_mouse_down:= fn (e ui.MouseEvent, mut window &ui.Window) {
-	mouse_down(mut window.state, e)
-}
+		mouse_down(mut window.state, e)
+	}
+	
+	fn_mouse_up:= fn (e ui.MouseEvent, mut window &ui.Window) {
+		mouse_up(mut window.state)
+	}
+	
+	fn_mouse_move:= fn (e ui.MouseMoveEvent, mut window &ui.Window) {
+		mouse_move(mut window.state, int(e.x), int(e.y))
+	}
 
 	app.btn_nm = ui.button({
 		width: 80
@@ -89,6 +97,8 @@ fn main() {
 		title: 'GAME OF LIFE'
 		resizable: true
 		on_mouse_down: fn_mouse_down
+		on_mouse_up: fn_mouse_up
+		on_mouse_move: fn_mouse_move
 		state: app
 	}, [
 		ui.canvas({
@@ -121,19 +131,42 @@ fn click_row (mut app &App, mut btn &ui.Button) {
 	btn.text="$app.map.width rows"
 }
 
-
 fn mouse_down (mut app &App, e ui.MouseEvent) {
-	
-	if !app.start {
-	//checks if click is in grid
-		if e.x > (app.margin_left + grid_padding) && e.y > app.margin_top + margin_top_to_grid && e.x < (sapp.width() - app.margin_left - grid_padding) && e.y < sapp.height() - app.margin_top - grid_padding{
-			x:= (e.x - grid_padding - app.margin_left) / (app.size + padding)
-			y:= (e.y - grid_padding - app.margin_top - margin_top_to_grid) / (app.size + padding)
-			//println("$x, $y")
-			app.map.pattern[x][y]=!app.map.pattern[x][y]
+	c, x, y :=grid_click(app, e.x, e.y)
+	if c{
+		app.map.pattern[x][y] = !app.map.pattern[x][y]
+		app.drag_state = app.map.pattern[x][y]
+		app.mouse_down = true
+	}
+}
 
+fn mouse_up (mut app &App) {
+	app.mouse_down = false
+}
+
+fn mouse_move (mut app &App, xx int, yy int) {
+	if app.mouse_down{
+		c, x, y := grid_click(app, xx, yy)
+		if c {		
+				if !app.map.pattern[x][y] == app.drag_state {
+					app.map.pattern[x][y] = app.drag_state
+					//app.window.refresh()
+				}	
 		}
 	}
+}
+
+fn grid_click (app &App, x int, y int) (bool, int, int) {
+	if !app.start {
+	//checks if click is in grid
+		if x > (app.margin_left + grid_padding) && y > app.margin_top + margin_top_to_grid && x < (sapp.width() - app.margin_left - grid_padding) && y < sapp.height() - app.margin_top - grid_padding{
+			px:= (x - grid_padding - app.margin_left) / (app.size + padding)
+			py:= (y - grid_padding - app.margin_top - margin_top_to_grid) / (app.size + padding)
+
+			return true, px, py
+		}
+	}
+	return false, 0, 0
 }
 
 fn start_stop(mut app App, mut btn &ui.Button) {
