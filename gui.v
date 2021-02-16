@@ -46,7 +46,8 @@ fn main() {
 	
 	mut app := &App{}
 	
-	scale:=if sapp.dpi_scale()==0.0 {1.0} else {sapp.dpi_scale()}
+	//scale:=if sapp.dpi_scale()==0.0 {1.0} else {sapp.dpi_scale()}
+	//scale:=1
 	
 	fn_mouse_down:= fn (e ui.MouseEvent, mut window &ui.Window) {
 	mouse_down(mut window.state, e)
@@ -95,19 +96,14 @@ fn main() {
 				height  :250
 				draw_fn:draw_c
 			}),
-		/*ui.row({
-			stretch: true
-			margin: ui.MarginConfig{8, 8, 8, 8}
-			spacing: 0
-		}, [*/	app.btn_start,
+			app.btn_start,
 			app.btn_col,
 			app.btn_row,
 			app.btn_nm	
-		//]),
 	])
 	app.window = window
 	go app.run()
-	go app.handle_size(scale)
+	go app.handle_size()
 	ui.run(window)
 }
 
@@ -150,7 +146,7 @@ fn start_stop(mut app App, mut btn &ui.Button) {
 		}
 }
 
-fn (mut app App) handle_size(scale f32) {
+fn (mut app App) handle_size() {
 	mut w, mut h, mut uh, mut uw, mut hs, mut ws:=0, 0, 0, 0, 0, 0
 	app.btn_col.y = 4
 	app.btn_row.y = 4
@@ -158,8 +154,8 @@ fn (mut app App) handle_size(scale f32) {
 	app.btn_start.x = margin_left
 	app.btn_nm.y = 4
 	for {
-		w = int(sapp.width() / scale)
-		h = int(sapp.height() / scale)
+		w = int(sapp.width())
+		h = int(sapp.height())
 		
 		uh = (h - margin_top_to_grid - 2 * grid_padding - (app.map.height-1) * padding)
 		uw = (w - 2 * grid_padding - (app.map.width - 1) * padding)
