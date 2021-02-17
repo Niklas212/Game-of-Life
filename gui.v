@@ -32,6 +32,8 @@ mut:
 	mouse_drag	bool
 	mouse_down	bool
 	drag_state	bool
+	window_width	int	= win_width
+	window_height	int	= win_height
 	btn_nm		&ui.Button = 0
 	btn_start	&ui.Button = 0
 	btn_row		&ui.Button = 0
@@ -136,11 +138,13 @@ fn new_map (mut app &App, mut btn &ui.Button) {
 fn click_column (mut app &App, mut btn &ui.Button) {
 	app.map=app.map.resize(app.map.width, app.map.height%20+5)
 	btn.text="$app.map.height columns"
+	handle_size(mut app, app.window_width, app.window_height)
 }
 
 fn click_row (mut app &App, mut btn &ui.Button) {
 	app.map=app.map.resize(app.map.width%40+10, app.map.height)
 	btn.text="$app.map.width rows"
+	handle_size(mut app, app.window_width, app.window_height)
 }
 
 fn mouse_down (mut app &App, e ui.MouseEvent) {
@@ -189,7 +193,9 @@ fn start_stop(mut app App, mut btn &ui.Button) {
 }
 
 fn handle_size(mut app App, w int, h int) {
-
+		app.window_width = w
+		app.window_height = h
+		
 		uh := (h - margin_top_to_grid - 2 * grid_padding - (app.map.height-1) * padding)
 		uw := (w - 2 * grid_padding - (app.map.width - 1) * padding)
 		
