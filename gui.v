@@ -182,7 +182,7 @@ fn grid_click (app &App, x int, y int) (bool, int, int) {
 			px:= (x - grid_padding - app.margin_left) / (app.size + padding)
 			py:= (y - grid_padding - app.margin_top - margin_top_to_grid) / (app.size + padding)
 
-			return px >= 0 && py >= 0 &&  px < app.map.width && py < app.map.height, px, py
+			return x > (grid_padding + app.margin_left) && y > (grid_padding + app.margin_top + margin_top_to_grid) &&  px < app.map.width && py < app.map.height, px, py
 	}
 	return false, 0, 0
 }
