@@ -133,7 +133,12 @@ fn main() {
 }
 
 fn shortcut (e ui.KeyEvent, mut app App) {
-	if int(e.key) == 32 {start_stop(mut app, mut app.btn_start)}
+	match int(e.key) {
+		32 {start_stop(mut app, mut app.btn_start)}
+		262, 263 {click_column(mut app, mut app.btn_col)}
+		264, 265 {click_column(mut app, mut app.btn_row)}
+		else {}
+	}
 }
 
 fn new_map (mut app &App, mut btn &ui.Button) {
