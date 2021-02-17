@@ -105,6 +105,7 @@ fn main() {
 		on_mouse_up: fn_mouse_up
 		on_mouse_move: fn_mouse_move
 		on_resize: fn_resize
+		on_key_down: shortcut
 		state: app
 	}, [
 		ui.canvas({
@@ -129,6 +130,10 @@ fn main() {
 	go app.run()
 	handle_size(mut app, win_width, win_height)
 	ui.run(app.window)
+}
+
+fn shortcut (e ui.KeyEvent, mut app App) {
+	if int(e.key) == 32 {start_stop(mut app, mut app.btn_start)}
 }
 
 fn new_map (mut app &App, mut btn &ui.Button) {
