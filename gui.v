@@ -4,7 +4,6 @@ import ui
 import gg
 import gx
 import time
-import sokol.sapp
 
 const (
 	col		=10
@@ -171,13 +170,10 @@ fn mouse_move (mut app &App, xx int, yy int) {
 
 fn grid_click (app &App, x int, y int) (bool, int, int) {
 	if !app.start {
-	//checks if click is in grid
-		if x > (app.margin_left + grid_padding) && y > app.margin_top + margin_top_to_grid && x < (sapp.width() - app.margin_left - grid_padding) && y < sapp.height() - app.margin_top - grid_padding{
 			px:= (x - grid_padding - app.margin_left) / (app.size + padding)
 			py:= (y - grid_padding - app.margin_top - margin_top_to_grid) / (app.size + padding)
 
-			return true, px, py
-		}
+			return px >= 0 && py >= 0 &&  px < app.map.width && py < app.map.height, px, py
 	}
 	return false, 0, 0
 }
