@@ -60,6 +60,10 @@ fn main() {
 	fn_mouse_move:= fn (e ui.MouseMoveEvent, mut window &ui.Window) {
 		mouse_move(mut window.state, int(e.x), int(e.y))
 	}
+	
+	fn_resize:= fn (w int, h int, mut window &ui.Window) {
+		handle_size(mut window.state, w, h)
+	}
 
 	app.btn_nm = ui.button({
 		width: 80
@@ -99,6 +103,7 @@ fn main() {
 		on_mouse_down: fn_mouse_down
 		on_mouse_up: fn_mouse_up
 		on_mouse_move: fn_mouse_move
+		on_resize: fn_resize
 		state: app
 	}, [
 		ui.canvas({
@@ -111,10 +116,18 @@ fn main() {
 			app.btn_row,
 			app.btn_nm	
 	])
+	
+	app.btn_col.y = 4
+	app.btn_row.y = 4
+	app.btn_start.y = 4
+	app.btn_start.x = margin_left
+	app.btn_nm.y = 4
+	
 	app.window = window
+	
 	go app.run()
-	go app.handle_size()
-	ui.run(window)
+	handle_size(mut app, win_width, win_height)
+	ui.run(app.window)
 }
 
 fn new_map (mut app &App, mut btn &ui.Button) {
@@ -179,22 +192,13 @@ fn start_stop(mut app App, mut btn &ui.Button) {
 		}
 }
 
-fn (mut app App) handle_size() {
-	mut w, mut h, mut uh, mut uw, mut hs, mut ws:=0, 0, 0, 0, 0, 0
-	app.btn_col.y = 4
-	app.btn_row.y = 4
-	app.btn_start.y = 4
-	app.btn_start.x = margin_left
-	app.btn_nm.y = 4
-	for {
-		w = int(sapp.width())
-		h = int(sapp.height())
+fn handle_size(mut app App, w int, h int) {
+
+		uh := (h - margin_top_to_grid - 2 * grid_padding - (app.map.height-1) * padding)
+		uw := (w - 2 * grid_padding - (app.map.width - 1) * padding)
 		
-		uh = (h - margin_top_to_grid - 2 * grid_padding - (app.map.height-1) * padding)
-		uw = (w - 2 * grid_padding - (app.map.width - 1) * padding)
-		
-		hs = uh / app.map.height
-		ws = uw / app.map.width
+		hs := uh / app.map.height
+		ws := uw / app.map.width
 	
 		app.size = if hs > ws {ws} else {hs}
 		
@@ -205,7 +209,6 @@ fn (mut app App) handle_size() {
 
 		app.btn_col.x = w / 2 - app.btn_col.width
 		app.btn_row.x = app.btn_col.x + app.btn_col.width
-	}
 }
 
 fn (mut app App) run() {
