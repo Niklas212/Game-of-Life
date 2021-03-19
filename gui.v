@@ -20,6 +20,10 @@ const (
 	bg_grid		=gx.rgb(120, 120, 120)
 	win_width  = 700
 	win_height = 400
+	btn_txt_cfg = gx.TextCfg{
+		align : .center
+	}
+	
 )
 
 struct App {
@@ -48,7 +52,7 @@ mut:
 
 fn main() {
 	
-	mut app := &App{}
+	mut app := &App{/*popup:ui.label({text: "PopUP"})*/}
 
 	fn_mouse_down:= fn (e ui.MouseEvent, mut window &ui.Window) {
 		mouse_down(mut window.state, e)
@@ -71,6 +75,7 @@ fn main() {
 		height: 30
 		text: "new map"
 		onclick:new_map
+		text_cfg: btn_txt_cfg
 	})
 	
 	app.btn_start = ui.button({
@@ -78,6 +83,7 @@ fn main() {
 		height: 30
 		text: "start"
 		onclick:start_stop
+		text_cfg: btn_txt_cfg
 				})
 	
 	app.btn_col = ui.button({
@@ -85,6 +91,7 @@ fn main() {
 		height: 30
 		text: "$col columns"
 		onclick:click_column
+		text_cfg: btn_txt_cfg
 				})
 				
 	app.btn_row = ui.button({
@@ -92,8 +99,8 @@ fn main() {
 		height: 30
 		text: "$row rows"
 		onclick:click_row
+		text_cfg: btn_txt_cfg
 				})
-				
 	
 	window := ui.window({
 		width: win_width
@@ -106,6 +113,7 @@ fn main() {
 		on_mouse_move: fn_mouse_move
 		on_resize: fn_resize
 		on_key_down: shortcut
+		on_click: fn_click
 		state: app
 	}, [
 		ui.canvas({
@@ -116,7 +124,7 @@ fn main() {
 			app.btn_start,
 			app.btn_col,
 			app.btn_row,
-			app.btn_nm	
+			app.btn_nm,	
 	])
 	
 	app.btn_col.y = 4
@@ -124,6 +132,7 @@ fn main() {
 	app.btn_start.y = 4
 	app.btn_start.x = margin_left
 	app.btn_nm.y = 4
+	
 	
 	app.window = window
 	
@@ -138,6 +147,13 @@ fn shortcut (e ui.KeyEvent, mut app App) {
 		262, 263 {click_row(mut app, mut app.btn_row)}
 		264, 265 {click_column(mut app, mut app.btn_col)}
 		else {}
+	}
+}
+
+fn fn_click (e ui.MouseEvent, mut w &ui.Window) {
+
+	if e.button == .right {
+		//w.children << ui.label({text: "Hallo"})
 	}
 }
 
