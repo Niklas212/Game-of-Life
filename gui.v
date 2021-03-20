@@ -22,6 +22,7 @@ const (
 	win_height = 400
 	btn_txt_cfg = gx.TextCfg{
 		align : .center
+		vertical_align: .middle
 	}
 	
 )
@@ -36,6 +37,7 @@ mut:
 	mouse_drag	bool
 	mouse_down	bool
 	drag_state	bool
+	show_menu	bool
 	window_width	int	= win_width
 	window_height	int	= win_height
 	btn_nm		&ui.Button = 0
@@ -68,6 +70,10 @@ fn main() {
 	
 	fn_resize:= fn (w int, h int, mut window &ui.Window) {
 		handle_size(mut window.state, w, h)
+	}
+
+	fn_click:= fn (e ui.MouseEvent, mut window &ui.Window) {
+		click(e, mut window.state)
 	}
 
 	app.btn_nm = ui.button({
@@ -150,10 +156,10 @@ fn shortcut (e ui.KeyEvent, mut app App) {
 	}
 }
 
-fn fn_click (e ui.MouseEvent, mut w &ui.Window) {
+fn click (e ui.MouseEvent, mut app App) {
 
-	if e.button == .right {
-		//w.children << ui.label({text: "Hallo"})
+	if e.button == .left {
+		app.show_menu = true
 	}
 }
 
@@ -215,6 +221,7 @@ fn start_stop(mut app App, mut btn &ui.Button) {
 		} else {
 			app.start=true
 			btn.text="stop"
+			go app.run()
 		}
 }
 
@@ -240,26 +247,30 @@ fn handle_size(mut app App, w int, h int) {
 }
 
 fn (mut app App) run() {
-	for {
-		if app.start {
-			app.map.simulate()
-			app.window.refresh()
-			time.sleep_ms(1000/sps)
-		}
-		
+
+	for app.start {
+		app.map.simulate()
+		app.window.refresh()
+		time.sleep_ms(1000/sps)
 	}
 }
 
 fn draw_c(gg &gg.Context, mut app &App, can &ui.Canvas) {
-	
+
 	// draw background color of grid
 	gg.draw_rect(app.margin_left, margin_top_to_grid+app.margin_top, (app.size+padding)*app.map.width-padding+2*grid_padding, (app.size+padding)*app.map.height-padding+2*grid_padding, bg_grid)
 	
 	//draw grid
 	for w in 0..app.map.width {
 		for h in 0..app.map.height {
+			// TODO: set colors in array => choose from them
 			gg.draw_rect((padding+app.size)*w+grid_padding+app.margin_left, (padding+app.size)*h+margin_top_to_grid+grid_padding+app.margin_top, app.size, app.size, if app.map.pattern[w][h] {life} else {dead} )
 		}
 	}
+/*
+	if app.show_menu {
+		gg.draw_rect(0, 0, 100, 100, gx.red)
+	}
+	*/
 }
 
