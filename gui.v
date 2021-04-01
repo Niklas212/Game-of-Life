@@ -24,8 +24,27 @@ const (
 		align : .center
 		vertical_align: .middle
 	}
+	highlight_color = gx.red
 	
 )
+
+struct Menu {
+	mut:
+	visible bool
+	// in grid
+	x	int
+	y	int
+	// absolute
+	//pos_x	int
+	//pos_y	int
+	max_size	f32 = 0.5
+	//width / height
+	ratio	f32 = 1.5
+	width	f32
+	height	f32
+	orientation_x	int = 0 // o: to right, 1: to left
+	orientation_y	int = 0 // 0: to bottom, 1: to top
+}
 
 struct App {
 mut:
@@ -37,13 +56,12 @@ mut:
 	mouse_drag	bool
 	mouse_down	bool
 	drag_state	bool
-	show_menu	bool
+	menu	Menu
 	window_width	int	= win_width
 	window_height	int	= win_height
 	btn_nm		&ui.Button = 0
 	btn_start	&ui.Button = 0
-	btn_row		&ui.Button = 0
-	btn_col		&ui.Button = 0
+	btn_size		&ui.Button = 0
 	
 	map	Map={
 		pattern:create_map(row, col)
@@ -72,9 +90,6 @@ fn main() {
 		handle_size(mut window.state, w, h)
 	}
 
-	fn_click:= fn (e ui.MouseEvent, mut window &ui.Window) {
-		click(e, mut window.state)
-	}
 
 	app.btn_nm = ui.button({
 		width: 80
@@ -92,19 +107,11 @@ fn main() {
 		text_cfg: btn_txt_cfg
 				})
 	
-	app.btn_col = ui.button({
+	app.btn_size = ui.button({
 		width:100
 		height: 30
-		text: "$col columns"
-		onclick:click_column
-		text_cfg: btn_txt_cfg
-				})
-				
-	app.btn_row = ui.button({
-		width: 100
-		height: 30
-		text: "$row rows"
-		onclick:click_row
+		text: "size: 30"
+		onclick:click_change_size
 		text_cfg: btn_txt_cfg
 				})
 	
@@ -119,7 +126,6 @@ fn main() {
 		on_mouse_move: fn_mouse_move
 		on_resize: fn_resize
 		on_key_down: shortcut
-		on_click: fn_click
 		state: app
 	}, [
 		ui.canvas({
@@ -128,13 +134,11 @@ fn main() {
 				draw_fn:draw_c
 			}),
 			app.btn_start,
-			app.btn_col,
-			app.btn_row,
+			app.btn_size,
 			app.btn_nm,	
 	])
 	
-	app.btn_col.y = 4
-	app.btn_row.y = 4
+	app.btn_size.y = 4
 	app.btn_start.y = 4
 	app.btn_start.x = margin_left
 	app.btn_nm.y = 4
@@ -150,16 +154,8 @@ fn main() {
 fn shortcut (e ui.KeyEvent, mut app App) {
 	match int(e.key) {
 		32 {start_stop(mut app, mut app.btn_start)}
-		262, 263 {click_row(mut app, mut app.btn_row)}
-		264, 265 {click_column(mut app, mut app.btn_col)}
+		262, 263, 264, 265 {click_change_size(mut app, mut app.btn_size)}
 		else {}
-	}
-}
-
-fn click (e ui.MouseEvent, mut app App) {
-
-	if e.button == .left {
-		app.show_menu = true
 	}
 }
 
@@ -167,24 +163,33 @@ fn new_map (mut app &App, mut btn &ui.Button) {
 	app.map.pattern=create_map(app.map.width, app.map.height)
 }
 
-fn click_column (mut app &App, mut btn &ui.Button) {
-	app.map=app.map.resize(app.map.width, app.map.height%20+5)
-	btn.text="$app.map.height columns"
-	handle_size(mut app, app.window_width, app.window_height)
-}
-
-fn click_row (mut app &App, mut btn &ui.Button) {
-	app.map=app.map.resize(app.map.width%40+10, app.map.height)
-	btn.text="$app.map.width rows"
+fn click_change_size (mut app &App, mut btn &ui.Button) {
+	//app.map=app.map.resize(app.map.width, app.map.height%20+5)
+	app.size = 10 + (app.size % 40 + 10)
+	btn.text="size: $app.size"
 	handle_size(mut app, app.window_width, app.window_height)
 }
 
 fn mouse_down (mut app &App, e ui.MouseEvent) {
-	c, x, y :=grid_click(app, e.x, e.y)
-	if c{
-		app.map.pattern[x][y] = !app.map.pattern[x][y]
-		app.drag_state = app.map.pattern[x][y]
-		app.mouse_down = true
+	if e.button == .left {
+		// TODO: recognise click on menu
+		c, x, y :=grid_click(app, e.x, e.y)
+		app.menu.visible = false
+		if c{
+			app.map.pattern[x][y] = !app.map.pattern[x][y]
+			app.drag_state = app.map.pattern[x][y]
+			app.mouse_down = true
+		}
+	} else {
+		c, x, y :=grid_click(app, e.x, e.y)
+			if c {
+			app.menu.visible = true
+			app.menu.x = x
+			app.menu.y = y
+			app.menu.orientation_x = if x >= app.map.width / 2 {1} else {0}
+			app.menu.orientation_y = if y >= app.map.height / 2 {1} else {0}
+			app.menu.resize(app.map.width, app.map.height)
+			}
 	}
 }
 
@@ -225,12 +230,26 @@ fn start_stop(mut app App, mut btn &ui.Button) {
 		}
 }
 
+fn (mut menu Menu) resize (width int, height int) {
+	menu.width = f32(width) * menu.max_size
+	menu.height = f32(height) * menu.max_size
+}
+
 fn handle_size(mut app App, w int, h int) {
 		app.window_width = w
 		app.window_height = h
 		
-		uh := (h - margin_top_to_grid - 2 * grid_padding - (app.map.height-1) * padding)
+		app.map.width = (w - 2 * grid_padding) / (app.size + padding)
+		app.map.height = (h - 2 * grid_padding - margin_top_to_grid) / (app.size + padding)
+
+		app.margin_left = (w - 2 * grid_padding - (app.size + padding) * app.map.width) / 2
+		app.margin_top = (h - 2 * grid_padding - margin_top_to_grid - (app.size + padding) * app.map.height) / 2
+		/*
+		uh := h - margin_top_to_grid -
 		uw := (w - 2 * grid_padding - (app.map.width - 1) * padding)
+		
+
+
 		
 		hs := uh / app.map.height
 		ws := uw / app.map.width
@@ -239,11 +258,12 @@ fn handle_size(mut app App, w int, h int) {
 		
 		app.margin_left = (uw - app.size * app.map.width) / 2
 		app.margin_top = (uh - app.size * app.map.height) / 2
-		
+		*/
 		app.btn_nm.x = w - margin_left - app.btn_nm.width
 
-		app.btn_col.x = w / 2 - app.btn_col.width
-		app.btn_row.x = app.btn_col.x + app.btn_col.width
+		app.btn_size.x = w / 2 - app.btn_size.width / 2
+		app.map.resize(app.map.width, app.map.height)
+		//app.btn_row.x = app.btn_col.x + app.btn_col.width
 }
 
 fn (mut app App) run() {
@@ -267,10 +287,20 @@ fn draw_c(gg &gg.Context, mut app &App, can &ui.Canvas) {
 			gg.draw_rect((padding+app.size)*w+grid_padding+app.margin_left, (padding+app.size)*h+margin_top_to_grid+grid_padding+app.margin_top, app.size, app.size, if app.map.pattern[w][h] {life} else {dead} )
 		}
 	}
-/*
-	if app.show_menu {
-		gg.draw_rect(0, 0, 100, 100, gx.red)
+
+	if app.menu.visible {
+		menu:=app.menu
+		width := menu.width * (app.size + padding)
+		height := menu.height * (app.size + padding)
+		x := menu.x * (app.size + padding) - padding + app.margin_left + grid_padding + app.size - menu.orientation_x * (width - 2 * padding + app.size) //+ (1 - menu.orientation_x) * app.size
+		y := menu.y * (app.size + padding) - padding + app.margin_top + margin_top_to_grid + grid_padding + app.size - menu.orientation_y * (height - 2 * padding + app.size) //+ (1 - menu.orientation_y) * app.size
+		gg.draw_rect(x, y, width, height, gx.red)
+		mx := menu.x * (app.size + padding) + app.margin_left + grid_padding
+		my := menu.y * (app.size + padding) + margin_top_to_grid + app.margin_top + grid_padding
+		gg.draw_empty_square(mx, my, app.size, highlight_color)
+		gg.draw_empty_square(mx + 1, my + 1, app.size - 2, highlight_color)
+		gg.draw_empty_square(mx + 2, my + 2, app.size - 4, highlight_color)
 	}
-	*/
+	
 }
 
