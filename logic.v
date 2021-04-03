@@ -169,14 +169,16 @@ fn (mut map Map)simulate() {
 }
 */
 
-fn (m Map) resize(w int, h int) Map {
-	mut nm:=[][]bool{len:w, init:[]bool{len:h}}
-	min_width:=if m.width>w {w} else {m.width}
-	min_height:=if m.height>h {h} else {m.height}
-	for x in 0..min_width {
-		for y in 0..min_height {
-			nm[x][y]=m.pattern[x][y]
+
+fn (mut map Map) resize (w int, h int) {
+	mut pattern := [][]bool{len:w, init:[]bool{len:h}}
+	common_width := if map.width > w {w} else {map.width}
+	common_height := if map.height > h {h} else {map.height}
+	
+	for x in 0..common_width {
+		for y in 0..common_height {
+			pattern[x][y] = map.pattern[x][y]
 		}
 	}
-	return Map{pattern:nm, width:w, height:h}
+	map = Map{pattern: pattern, width : w, height : h}
 }

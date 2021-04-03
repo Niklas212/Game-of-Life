@@ -49,7 +49,7 @@ struct Menu {
 struct App {
 mut:
 	window &ui.Window = 0
-	start	bool
+	start	bool = false
 	size	int =30
 	margin_top int
 	margin_left int
@@ -72,7 +72,7 @@ mut:
 
 fn main() {
 	
-	mut app := &App{/*popup:ui.label({text: "PopUP"})*/}
+	mut app := &App{}
 
 	fn_mouse_down:= fn (e ui.MouseEvent, mut window &ui.Window) {
 		mouse_down(mut window.state, e)
@@ -165,15 +165,15 @@ fn new_map (mut app &App, mut btn &ui.Button) {
 
 fn click_change_size (mut app &App, mut btn &ui.Button) {
 	//app.map=app.map.resize(app.map.width, app.map.height%20+5)
-	app.size = 10 + (app.size % 40 + 10)
+	app.size = 10 + (app.size % 50)
 	btn.text="size: $app.size"
 	handle_size(mut app, app.window_width, app.window_height)
 }
 
 fn mouse_down (mut app &App, e ui.MouseEvent) {
+	c, x, y := grid_click(app, e.x, e.y)
 	if e.button == .left {
 		// TODO: recognise click on menu
-		c, x, y :=grid_click(app, e.x, e.y)
 		app.menu.visible = false
 		if c{
 			app.map.pattern[x][y] = !app.map.pattern[x][y]
@@ -181,8 +181,13 @@ fn mouse_down (mut app &App, e ui.MouseEvent) {
 			app.mouse_down = true
 		}
 	} else {
-		c, x, y :=grid_click(app, e.x, e.y)
 			if c {
+//println("_1")
+			//mut s:= app.window
+//println("_2")
+			/*if s is ui.Stack {
+				println("ist Stack")
+			}*/
 			app.menu.visible = true
 			app.menu.x = x
 			app.menu.y = y
@@ -233,36 +238,31 @@ fn start_stop(mut app App, mut btn &ui.Button) {
 fn (mut menu Menu) resize (width int, height int) {
 	menu.width = f32(width) * menu.max_size
 	menu.height = f32(height) * menu.max_size
+	
+	if menu.width / menu.height > menu.ratio {
+		menu.width = menu.height * menu.ratio
+	} else {
+		menu.height = menu.width / menu.ratio
+	}
 }
 
 fn handle_size(mut app App, w int, h int) {
+
 		app.window_width = w
 		app.window_height = h
 		
-		app.map.width = (w - 2 * grid_padding) / (app.size + padding)
-		app.map.height = (h - 2 * grid_padding - margin_top_to_grid) / (app.size + padding)
+		map_width := (w - 2 * grid_padding + padding) / (app.size + padding)
+		map_height := (h - 2 * grid_padding - margin_top_to_grid + padding) / (app.size + padding)
 
-		app.margin_left = (w - 2 * grid_padding - (app.size + padding) * app.map.width) / 2
-		app.margin_top = (h - 2 * grid_padding - margin_top_to_grid - (app.size + padding) * app.map.height) / 2
-		/*
-		uh := h - margin_top_to_grid -
-		uw := (w - 2 * grid_padding - (app.map.width - 1) * padding)
-		
+		app.margin_left = (w - 2 * grid_padding - (app.size + padding) * map_width + padding) / 2
+		app.margin_top = (h - 2 * grid_padding - margin_top_to_grid - (app.size + padding) * map_height + padding) / 2
 
-
-		
-		hs := uh / app.map.height
-		ws := uw / app.map.width
-	
-		app.size = if hs > ws {ws} else {hs}
-		
-		app.margin_left = (uw - app.size * app.map.width) / 2
-		app.margin_top = (uh - app.size * app.map.height) / 2
-		*/
 		app.btn_nm.x = w - margin_left - app.btn_nm.width
-
 		app.btn_size.x = w / 2 - app.btn_size.width / 2
-		app.map.resize(app.map.width, app.map.height)
+
+		app.map.resize(map_width, map_height)
+		//app.menu.resize(map_width, map_height)
+
 		//app.btn_row.x = app.btn_col.x + app.btn_col.width
 }
 
